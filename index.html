@@ -5,224 +5,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            transition: background 0.3s, color 0.3s;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: #333;
-            color: white;
-        }
-        .settings {
-            position: relative;
-            display: inline-block;
-            cursor: pointer;
-            padding: 5px 15px;
-            background: #444;
-            border-radius: 5px;
-        }
-        .settings-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            background: white;
-            color: black;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            border-radius: 5px;
-            padding: 10px;
-            width: 180px;
-        }
-        .settings:hover .settings-menu {
-            display: block;
-        }
-        .dark-mode {
-            background: #222;
-            color: white;
-        }
-        .recommendation {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-        }
-        .like-dislike {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-        }
-        .liked {
-            color: green;
-        }
-        .disliked {
-            color: red;
-        }
-        .admin-controls {
-            margin-top: 20px;
-        }
-        .admin-controls input {
-            padding: 5px;
-            margin: 5px;
-        }
-        .admin-controls button {
-            padding: 5px;
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+        .container { width: 80%; margin: auto; padding: 20px; background: white; }
+        .hidden { display: none; }
+        .navbar { display: flex; justify-content: space-between; background: #333; color: white; padding: 10px; }
+        .navbar button { background: none; border: none; color: white; cursor: pointer; }
+        .settings-menu { position: absolute; right: 10px; top: 50px; background: white; border: 1px solid #ccc; padding: 10px; display: none; }
+        .dashboard { margin-top: 20px; }
+        .recommendation { border: 1px solid #ddd; padding: 10px; margin: 10px 0; }
+        .dark-mode { background: #222; color: white; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="settings">
-            ⚙ Settings
-            <div class="settings-menu">
-                <div class="toggle-container">
-                    <span>Dark Mode</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="themeToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <button id="logoutButton">Logout</button>
-            </div>
-        </div>
+        <span>CRM Dashboard</span>
+        <button onclick="toggleSettings()">⚙ Settings</button>
     </div>
 
-    <div id="loginSection">
-        <div class="login-container">
-            <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <label>
-                <input type="checkbox" id="rememberMe"> Keep Me Signed In
-            </label>
-            <button id="submitLogin">Login</button>
-            <p class="error-message" id="errorMessage">Invalid credentials!</p>
-        </div>
+    <div class="settings-menu" id="settingsMenu">
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <button onclick="logout()">Logout</button>
     </div>
 
-    <div id="dashboard" style="display: none;">
-        <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-        
-        <div id="recommendations">
-            <h2>Stock Market Recommendations</h2>
-            <div id="recommendationList"></div>
-        </div>
+    <div class="container" id="loginForm">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
 
-        <div id="adminControls" class="admin-controls" style="display: none;">
-            <h2>Manage Recommendations</h2>
-            <input type="text" id="recText" placeholder="Enter Recommendation">
-            <button onclick="addRecommendation()">Add</button>
+    <div class="container hidden" id="dashboard">
+        <h2>Welcome to the CRM</h2>
+        <div class="dashboard">
+            <h3>Stock Recommendations</h3>
+            <div id="recommendations"></div>
         </div>
     </div>
 
     <script>
-        const users = {
-            "admin": { password: "admin123", role: "Admin" },
-            "analyst": { password: "analyst123", role: "Analyst" },
-            "client": { password: "client123", role: "Client" }
-        };
+        let darkMode = localStorage.getItem("darkMode") === "enabled";
+        document.body.classList.toggle("dark-mode", darkMode);
 
-        const themeToggle = document.getElementById('themeToggle');
-        const submitLogin = document.getElementById('submitLogin');
-        const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        const rememberMe = document.getElementById('rememberMe');
-        const errorMessage = document.getElementById('errorMessage');
-        const logoutButton = document.getElementById('logoutButton');
-        const loginSection = document.getElementById('loginSection');
-        const dashboard = document.getElementById('dashboard');
-        const adminControls = document.getElementById('adminControls');
-        const recommendationList = document.getElementById('recommendationList');
-
-        let recommendations = [];
-
-        function saveLogin(username, role) {
-            localStorage.setItem("loggedInUser", JSON.stringify({ username, role }));
+        function toggleDarkMode() {
+            darkMode = !darkMode;
+            localStorage.setItem("darkMode", darkMode ? "enabled" : "disabled");
+            document.body.classList.toggle("dark-mode", darkMode);
         }
 
-        function loadLogin() {
-            const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-            if (savedUser) {
-                showDashboard(savedUser.role);
-            }
+        function toggleSettings() {
+            const menu = document.getElementById("settingsMenu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
         }
 
-        function showDashboard(role) {
-            loginSection.style.display = "none";
-            dashboard.style.display = "block";
-            logoutButton.style.display = "block";
-
-            if (role === "Admin" || role === "Analyst") {
-                adminControls.style.display = "block";
-            }
+        function login() {
+            document.getElementById("loginForm").classList.add("hidden");
+            document.getElementById("dashboard").classList.remove("hidden");
         }
 
-        submitLogin.addEventListener('click', function() {
-            let username = usernameInput.value.trim().toLowerCase();
-            let password = passwordInput.value.trim();
-            
-            if (users[username] && users[username].password === password) {
-                showDashboard(users[username].role);
-
-                if (rememberMe.checked) {
-                    saveLogin(username, users[username].role);
-                }
-            } else {
-                errorMessage.style.display = "block";
-            }
-        });
-
-        logoutButton.addEventListener('click', function() {
-            localStorage.removeItem("loggedInUser");
-            location.reload();
-        });
-
-        loadLogin();
-
-        function addRecommendation() {
-            let text = document.getElementById('recText').value;
-            if (text.trim() === "") return;
-            let recId = recommendations.length;
-            recommendations.push({ id: recId, text: text });
-
-            let div = document.createElement("div");
-            div.classList.add("recommendation");
-            div.innerHTML = `
-                <p>${text}</p>
-                <button onclick="deleteRecommendation(${recId})">Delete</button>
-            `;
-            recommendationList.appendChild(div);
-            document.getElementById('recText').value = "";
+        function logout() {
+            document.getElementById("loginForm").classList.remove("hidden");
+            document.getElementById("dashboard").classList.add("hidden");
         }
 
-        function deleteRecommendation(id) {
-            recommendations = recommendations.filter(r => r.id !== id);
-            updateRecommendationList();
-        }
+        function loadRecommendations() {
+            let recommendations = [
+                { id: 1, stock: "TCS", price: 3500, status: "Open", liked: false },
+                { id: 2, stock: "INFY", price: 1600, status: "Closed", liked: false }
+            ];
 
-        function updateRecommendationList() {
-            recommendationList.innerHTML = "";
+            let container = document.getElementById("recommendations");
+            container.innerHTML = "";
+
             recommendations.forEach(rec => {
                 let div = document.createElement("div");
                 div.classList.add("recommendation");
                 div.innerHTML = `
-                    <p>${rec.text}</p>
-                    <button onclick="deleteRecommendation(${rec.id})">Delete</button>
+                    <p><strong>${rec.stock}</strong> - ₹${rec.price} (${rec.status})</p>
+                    <button onclick="toggleLike(${rec.id})">👍</button>
+                    <button onclick="toggleDislike(${rec.id})">👎</button>
                 `;
-                recommendationList.appendChild(div);
+                container.appendChild(div);
             });
         }
+
+        function toggleLike(id) {
+            console.log(`Liked recommendation ${id}`);
+        }
+
+        function toggleDislike(id) {
+            console.log(`Disliked recommendation ${id}`);
+        }
+
+        loadRecommendations();
     </script>
 
 </body>
-</html>
+</html
