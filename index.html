@@ -14,15 +14,10 @@
         }
         .navbar {
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             padding: 10px;
             background: #333;
             color: white;
-        }
-        .nav-links a {
-            color: white;
-            margin: 0 15px;
-            text-decoration: none;
         }
         .settings {
             position: relative;
@@ -41,70 +36,149 @@
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
             padding: 10px;
-            width: 180px;
+            width: 200px;
         }
         .settings:hover .settings-menu {
             display: block;
+        }
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
         }
         .dark-mode {
             background: #222;
             color: white;
         }
-        .profile {
-            margin-top: 20px;
+        .login-form {
+            display: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .error-message {
+            color: red;
+            font-size: 12px;
+            display: none;
+        }
+        .recommendation {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+        .like-dislike {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
+
     <div class="navbar">
-        <div class="nav-links">
-            <a href="#dashboard">Dashboard</a>
-            <a href="#clients">Clients</a>
-            <a href="#reports">Reports</a>
-        </div>
         <div class="settings">
             ⚙ Settings
             <div class="settings-menu">
                 <button id="loginButton">Login</button>
-                <div id="userProfile" class="profile" style="display: none;">
-                    <p id="userRole"></p>
-                    <button id="logoutButton">Logout</button>
+                <div id="loginForm" class="login-form">
+                    <input type="text" id="username" placeholder="Username">
+                    <input type="password" id="password" placeholder="Password">
+                    <label>
+                        <input type="checkbox" id="rememberMe"> Keep Me Signed In
+                    </label>
+                    <button id="submitLogin">Submit</button>
+                    <p class="error-message" id="errorMessage">Invalid credentials!</p>
                 </div>
             </div>
         </div>
     </div>
-    <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-    <script>
-        const loginButton = document.getElementById('loginButton');
-        const logoutButton = document.getElementById('logoutButton');
-        const userProfile = document.getElementById('userProfile');
-        const userRoleText = document.getElementById('userRole');
-        const welcomeMessage = document.getElementById('welcomeMessage');
 
+    <h1 id="welcomeMessage">Welcome to Your CRM</h1>
+
+    <div id="recommendations">
+        <h2>Stock Market Recommendations</h2>
+        <div class="recommendation">
+            <h3>Intraday Trade</h3>
+            <p>Buy at: ₹100 | Target: ₹110 | Stop Loss: ₹95 | Status: Open</p>
+            <div class="like-dislike">
+                <button class="likeBtn">👍 Like</button>
+                <button class="dislikeBtn">👎 Dislike</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
         const users = {
             "admin": { password: "admin123", role: "Admin" },
             "analyst": { password: "analyst123", role: "Analyst" },
             "client": { password: "client123", role: "Client" }
         };
 
-        loginButton.addEventListener('click', function() {
-            let username = prompt("Enter Username:");
-            let password = prompt("Enter Password:");
+        const loginButton = document.getElementById('loginButton');
+        const submitLogin = document.getElementById('submitLogin');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const rememberMe = document.getElementById('rememberMe');
+        const errorMessage = document.getElementById('errorMessage');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+
+        function saveLogin(username, role) {
+            localStorage.setItem("loggedInUser", JSON.stringify({ username, role }));
+        }
+
+        function loadLogin() {
+            const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+            if (savedUser) {
+                welcomeMessage.textContent = `Welcome ${savedUser.role}!`;
+                loginButton.textContent = "Logout";
+            }
+        }
+
+        submitLogin.addEventListener('click', function() {
+            let username = usernameInput.value.trim().toLowerCase();
+            let password = passwordInput.value.trim();
+            
             if (users[username] && users[username].password === password) {
-                userProfile.style.display = "block";
-                loginButton.style.display = "none";
-                userRoleText.textContent = "Role: " + users[username].role;
-                welcomeMessage.textContent = "Welcome " + users[username].role + "!";
+                welcomeMessage.textContent = `Welcome ${users[username].role}!`;
+                loginButton.textContent = "Logout";
+
+                if (rememberMe.checked) {
+                    saveLogin(username, users[username].role);
+                }
             } else {
-                alert("Invalid credentials!");
+                errorMessage.style.display = "block";
             }
         });
 
-        logoutButton.addEventListener('click', function() {
-            userProfile.style.display = "none";
-            loginButton.style.display = "block";
-            welcomeMessage.textContent = "Welcome to Your CRM";
+        loginButton.addEventListener('click', function() {
+            if (loginButton.textContent === "Logout") {
+                localStorage.removeItem("loggedInUser");
+                location.reload();
+            }
+        });
+
+        loadLogin();
+
+        document.querySelectorAll('.likeBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert("You liked this recommendation!");
+            });
+        });
+
+        document.querySelectorAll('.dislikeBtn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                alert("You disliked this recommendation!");
+            });
         });
     </script>
+
 </body>
 </html>
