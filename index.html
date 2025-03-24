@@ -32,22 +32,22 @@
             background: #222;
             color: white;
         }
-        .login-container {
+        .login-container, .admin-panel {
             width: 300px;
-            margin: 50px auto;
+            margin: 20px auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 10px;
             background: white;
         }
-        .login-container input {
+        .login-container input, .admin-panel input {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .login-btn {
+        .login-btn, .admin-panel button {
             width: 100%;
             padding: 10px;
             background: #007bff;
@@ -56,14 +56,6 @@
             cursor: pointer;
             border-radius: 5px;
             margin-top: 10px;
-        }
-        .login-btn:hover {
-            background: #0056b3;
-        }
-        .error-message {
-            color: red;
-            font-size: 12px;
-            display: none;
         }
         .recommendation {
             border: 1px solid #ccc;
@@ -76,12 +68,8 @@
             justify-content: space-around;
             margin-top: 10px;
         }
-        .liked {
-            color: green;
-        }
-        .disliked {
-            color: red;
-        }
+        .liked { color: green; }
+        .disliked { color: red; }
     </style>
 </head>
 <body>
@@ -101,26 +89,25 @@
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
-            <label>
-                <input type="checkbox" id="rememberMe"> Keep Me Signed In
-            </label>
+            <label><input type="checkbox" id="rememberMe"> Keep Me Signed In</label>
             <button id="submitLogin" class="login-btn">Login</button>
-            <p class="error-message" id="errorMessage">Invalid credentials!</p>
+            <p class="error-message" id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
         </div>
     </div>
 
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
+        
+        <div id="adminPanel" class="admin-panel" style="display: none;">
+            <h3>Add Recommendation</h3>
+            <input type="text" id="recTitle" placeholder="Title">
+            <input type="text" id="recDetails" placeholder="Details (Buy Price, Target, Stop Loss)">
+            <button onclick="addRecommendation()">Add</button>
+        </div>
+
         <div id="recommendations">
             <h2>Stock Market Recommendations</h2>
-            <div class="recommendation">
-                <h3>Intraday Trade</h3>
-                <p>Buy at: ₹100 | Target: ₹110 | Stop Loss: ₹95 | Status: Open</p>
-                <div class="like-dislike">
-                    <button class="likeBtn">👍 Like</button>
-                    <button class="dislikeBtn">👎 Dislike</button>
-                </div>
-            </div>
+            <div id="recList"></div>
         </div>
     </div>
 
@@ -130,6 +117,8 @@
             "analyst": { password: "analyst123", role: "Analyst" },
             "client": { password: "client123", role: "Client" }
         };
+
+        let recommendations = [];
 
         function toggleSettings() {
             const menu = document.getElementById("settingsMenu");
@@ -157,6 +146,12 @@
             document.getElementById("loginSection").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
             document.getElementById("welcomeMessage").textContent = `Welcome ${role}!`;
+
+            if (role === "Admin" || role === "Analyst") {
+                document.getElementById("adminPanel").style.display = "block";
+            }
+
+            loadRecommendations();
         }
 
         document.getElementById('submitLogin').addEventListener('click', function() {
@@ -165,7 +160,6 @@
             
             if (users[username] && users[username].password === password) {
                 showDashboard(users[username].role);
-
                 if (document.getElementById("rememberMe").checked) {
                     localStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
                 }
@@ -174,21 +168,55 @@
             }
         });
 
-        document.querySelectorAll('.likeBtn, .dislikeBtn').forEach(button => {
-            button.addEventListener('click', function() {
-                let parent = this.parentElement;
-                let likeBtn = parent.querySelector('.likeBtn');
-                let dislikeBtn = parent.querySelector('.dislikeBtn');
+        function addRecommendation() {
+            const title = document.getElementById("recTitle").value;
+            const details = document.getElementById("recDetails").value;
 
-                if (this.classList.contains("likeBtn")) {
-                    likeBtn.classList.toggle("liked");
-                    dislikeBtn.classList.remove("disliked");
-                } else {
-                    dislikeBtn.classList.toggle("disliked");
-                    likeBtn.classList.remove("liked");
-                }
+            if (title && details) {
+                recommendations.push({ title, details });
+                localStorage.setItem("recommendations", JSON.stringify(recommendations));
+                loadRecommendations();
+            }
+        }
+
+        function loadRecommendations() {
+            const recList = document.getElementById("recList");
+            recList.innerHTML = "";
+            recommendations = JSON.parse(localStorage.getItem("recommendations")) || [];
+
+            recommendations.forEach((rec, index) => {
+                const recDiv = document.createElement("div");
+                recDiv.classList.add("recommendation");
+                recDiv.innerHTML = `
+                    <h3>${rec.title}</h3>
+                    <p>${rec.details}</p>
+                    <button onclick="editRecommendation(${index})">Edit</button>
+                    <button onclick="deleteRecommendation(${index})">Delete</button>
+                    <div class="like-dislike">
+                        <button onclick="toggleReaction(${index}, 'like')">👍 Like</button>
+                        <button onclick="toggleReaction(${index}, 'dislike')">👎 Dislike</button>
+                    </div>
+                `;
+                recList.appendChild(recDiv);
             });
-        });
+        }
+
+        function editRecommendation(index) {
+            const newTitle = prompt("Edit Title:", recommendations[index].title);
+            const newDetails = prompt("Edit Details:", recommendations[index].details);
+
+            if (newTitle && newDetails) {
+                recommendations[index] = { title: newTitle, details: newDetails };
+                localStorage.setItem("recommendations", JSON.stringify(recommendations));
+                loadRecommendations();
+            }
+        }
+
+        function deleteRecommendation(index) {
+            recommendations.splice(index, 1);
+            localStorage.setItem("recommendations", JSON.stringify(recommendations));
+            loadRecommendations();
+        }
 
         loadLogin();
     </script>
