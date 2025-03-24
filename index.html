@@ -19,47 +19,31 @@
             background: #333;
             color: white;
         }
+        .settings {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            padding: 5px 15px;
+            background: #444;
+            border-radius: 5px;
+        }
+        .settings-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background: white;
+            color: black;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            width: 180px;
+        }
+        .settings:hover .settings-menu {
+            display: block;
+        }
         .dark-mode {
             background: #222;
             color: white;
-        }
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .login-container {
-            width: 300px;
-            margin: 50px auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            background: white;
-        }
-        .login-container input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .login-btn {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        .login-btn:hover {
-            background: #0056b3;
-        }
-        .error-message {
-            color: red;
-            font-size: 12px;
-            display: none;
         }
         .recommendation {
             border: 1px solid #ccc;
@@ -78,19 +62,39 @@
         .disliked {
             color: red;
         }
+        .admin-controls {
+            margin-top: 20px;
+        }
+        .admin-controls input {
+            padding: 5px;
+            margin: 5px;
+        }
+        .admin-controls button {
+            padding: 5px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <div class="toggle-container">
-            <span>Dark Mode</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="themeToggle">
-                <span class="slider"></span>
-            </label>
+        <div class="settings">
+            ⚙ Settings
+            <div class="settings-menu">
+                <div class="toggle-container">
+                    <span>Dark Mode</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <button id="logoutButton">Logout</button>
+            </div>
         </div>
-        <button id="logoutButton" style="display: none;">Logout</button>
     </div>
 
     <div id="loginSection">
@@ -101,23 +105,23 @@
             <label>
                 <input type="checkbox" id="rememberMe"> Keep Me Signed In
             </label>
-            <button id="submitLogin" class="login-btn">Login</button>
+            <button id="submitLogin">Login</button>
             <p class="error-message" id="errorMessage">Invalid credentials!</p>
         </div>
     </div>
 
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
+        
         <div id="recommendations">
             <h2>Stock Market Recommendations</h2>
-            <div class="recommendation">
-                <h3>Intraday Trade</h3>
-                <p>Buy at: ₹100 | Target: ₹110 | Stop Loss: ₹95 | Status: Open</p>
-                <div class="like-dislike">
-                    <button class="likeBtn">👍 Like</button>
-                    <button class="dislikeBtn">👎 Dislike</button>
-                </div>
-            </div>
+            <div id="recommendationList"></div>
+        </div>
+
+        <div id="adminControls" class="admin-controls" style="display: none;">
+            <h2>Manage Recommendations</h2>
+            <input type="text" id="recText" placeholder="Enter Recommendation">
+            <button onclick="addRecommendation()">Add</button>
         </div>
     </div>
 
@@ -134,10 +138,13 @@
         const passwordInput = document.getElementById('password');
         const rememberMe = document.getElementById('rememberMe');
         const errorMessage = document.getElementById('errorMessage');
-        const welcomeMessage = document.getElementById('welcomeMessage');
         const logoutButton = document.getElementById('logoutButton');
         const loginSection = document.getElementById('loginSection');
         const dashboard = document.getElementById('dashboard');
+        const adminControls = document.getElementById('adminControls');
+        const recommendationList = document.getElementById('recommendationList');
+
+        let recommendations = [];
 
         function saveLogin(username, role) {
             localStorage.setItem("loggedInUser", JSON.stringify({ username, role }));
@@ -154,7 +161,10 @@
             loginSection.style.display = "none";
             dashboard.style.display = "block";
             logoutButton.style.display = "block";
-            welcomeMessage.textContent = `Welcome ${role}!`;
+
+            if (role === "Admin" || role === "Analyst") {
+                adminControls.style.display = "block";
+            }
         }
 
         submitLogin.addEventListener('click', function() {
@@ -179,22 +189,39 @@
 
         loadLogin();
 
-        document.querySelectorAll('.likeBtn, .dislikeBtn').forEach(button => {
-            button.addEventListener('click', function() {
-                let parent = this.parentElement;
-                let likeBtn = parent.querySelector('.likeBtn');
-                let dislikeBtn = parent.querySelector('.dislikeBtn');
+        function addRecommendation() {
+            let text = document.getElementById('recText').value;
+            if (text.trim() === "") return;
+            let recId = recommendations.length;
+            recommendations.push({ id: recId, text: text });
 
-                if (this.classList.contains("likeBtn")) {
-                    likeBtn.classList.toggle("liked");
-                    dislikeBtn.classList.remove("disliked");
-                } else {
-                    dislikeBtn.classList.toggle("disliked");
-                    likeBtn.classList.remove("liked");
-                }
+            let div = document.createElement("div");
+            div.classList.add("recommendation");
+            div.innerHTML = `
+                <p>${text}</p>
+                <button onclick="deleteRecommendation(${recId})">Delete</button>
+            `;
+            recommendationList.appendChild(div);
+            document.getElementById('recText').value = "";
+        }
+
+        function deleteRecommendation(id) {
+            recommendations = recommendations.filter(r => r.id !== id);
+            updateRecommendationList();
+        }
+
+        function updateRecommendationList() {
+            recommendationList.innerHTML = "";
+            recommendations.forEach(rec => {
+                let div = document.createElement("div");
+                div.classList.add("recommendation");
+                div.innerHTML = `
+                    <p>${rec.text}</p>
+                    <button onclick="deleteRecommendation(${rec.id})">Delete</button>
+                `;
+                recommendationList.appendChild(div);
             });
-        });
-
+        }
     </script>
 
 </body>
