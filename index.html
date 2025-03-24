@@ -32,44 +32,38 @@
             background: #222;
             color: white;
         }
-        .login-container, .admin-panel {
+        .login-container {
             width: 300px;
-            margin: 20px auto;
+            margin: 50px auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 10px;
             background: white;
-        }
-        .login-container input, .admin-panel input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        .login-btn, .admin-panel button {
-            width: 100%;
-            padding: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
         }
         .recommendation {
             border: 1px solid #ccc;
             padding: 10px;
             margin: 10px;
             border-radius: 5px;
+            position: relative;
+        }
+        .edit-delete {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            display: none;
         }
         .like-dislike {
             display: flex;
             justify-content: space-around;
             margin-top: 10px;
         }
-        .liked { color: green; }
-        .disliked { color: red; }
+        .liked {
+            color: green;
+        }
+        .disliked {
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -89,36 +83,35 @@
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
-            <label><input type="checkbox" id="rememberMe"> Keep Me Signed In</label>
-            <button id="submitLogin" class="login-btn">Login</button>
+            <label>
+                <input type="checkbox" id="rememberMe"> Keep Me Signed In
+            </label>
+            <button id="submitLogin">Login</button>
             <p class="error-message" id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
         </div>
     </div>
 
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-        
-        <div id="adminPanel" class="admin-panel" style="display: none;">
-            <h3>Add Recommendation</h3>
-            <input type="text" id="recTitle" placeholder="Title">
-            <input type="text" id="recDetails" placeholder="Details (Buy Price, Target, Stop Loss)">
-            <button onclick="addRecommendation()">Add</button>
-        </div>
-
         <div id="recommendations">
             <h2>Stock Market Recommendations</h2>
-            <div id="recList"></div>
+            <button id="addRecommendation" style="display: none;" onclick="addRecommendation()">+ Add Recommendation</button>
+            <div id="recommendationList"></div>
         </div>
     </div>
 
     <script>
         const users = {
             "admin": { password: "admin123", role: "Admin" },
-            "analyst": { password: "analyst123", role: "Analyst" },
+            "analyst1": { password: "analyst123", role: "Analyst" },
             "client": { password: "client123", role: "Client" }
         };
 
-        let recommendations = [];
+        let loggedInUser = null;
+        let recommendations = [
+            { id: 1, creator: "admin", type: "Intraday", buy: 100, target: 110, stopLoss: 95, status: "Open" },
+            { id: 2, creator: "analyst1", type: "Swing", buy: 200, target: 220, stopLoss: 190, status: "Open" }
+        ];
 
         function toggleSettings() {
             const menu = document.getElementById("settingsMenu");
@@ -127,7 +120,6 @@
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
-            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode") ? "enabled" : "disabled");
         }
 
         function logout() {
@@ -135,22 +127,86 @@
             location.reload();
         }
 
-        function loadLogin() {
-            const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
-            if (savedUser) {
-                showDashboard(savedUser.role);
-            }
-        }
-
-        function showDashboard(role) {
+        function showDashboard(role, username) {
+            loggedInUser = { role, username };
             document.getElementById("loginSection").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
-            document.getElementById("welcomeMessage").textContent = `Welcome ${role}!`;
-
+            document.getElementById("welcomeMessage").textContent = `Welcome, ${username}!`;
+            
             if (role === "Admin" || role === "Analyst") {
-                document.getElementById("adminPanel").style.display = "block";
+                document.getElementById("addRecommendation").style.display = "block";
             }
 
+            loadRecommendations();
+        }
+
+        function loadRecommendations() {
+            const recommendationList = document.getElementById("recommendationList");
+            recommendationList.innerHTML = "";
+
+            recommendations.forEach(rec => {
+                let recDiv = document.createElement("div");
+                recDiv.className = "recommendation";
+                recDiv.innerHTML = `
+                    <h3>${rec.type} Trade</h3>
+                    <p>Buy at: ₹${rec.buy} | Target: ₹${rec.target} | Stop Loss: ₹${rec.stopLoss} | Status: ${rec.status}</p>
+                    <div class="like-dislike">
+                        <button class="likeBtn">👍 Like</button>
+                        <button class="dislikeBtn">👎 Dislike</button>
+                    </div>
+                    <div class="edit-delete">
+                        <button onclick="editRecommendation(${rec.id})">✏ Edit</button>
+                        <button onclick="deleteRecommendation(${rec.id})">❌ Delete</button>
+                    </div>
+                `;
+
+                if (loggedInUser.role === "Admin" || (loggedInUser.role === "Analyst" && loggedInUser.username === rec.creator)) {
+                    recDiv.querySelector(".edit-delete").style.display = "block";
+                }
+
+                recommendationList.appendChild(recDiv);
+            });
+        }
+
+        function addRecommendation() {
+            let type = prompt("Enter Trade Type (Intraday, Swing, Positional, Long-Term):");
+            let buy = prompt("Enter Buy Price:");
+            let target = prompt("Enter Target Price:");
+            let stopLoss = prompt("Enter Stop Loss:");
+            if (!type || !buy || !target || !stopLoss) return;
+
+            let newRec = {
+                id: recommendations.length + 1,
+                creator: loggedInUser.username,
+                type,
+                buy: parseFloat(buy),
+                target: parseFloat(target),
+                stopLoss: parseFloat(stopLoss),
+                status: "Open"
+            };
+            recommendations.push(newRec);
+            loadRecommendations();
+        }
+
+        function editRecommendation(id) {
+            let rec = recommendations.find(r => r.id === id);
+            if (!rec || (loggedInUser.role !== "Admin" && loggedInUser.username !== rec.creator)) return;
+
+            let newType = prompt("Edit Trade Type:", rec.type);
+            let newBuy = prompt("Edit Buy Price:", rec.buy);
+            let newTarget = prompt("Edit Target Price:", rec.target);
+            let newStopLoss = prompt("Edit Stop Loss:", rec.stopLoss);
+            if (!newType || !newBuy || !newTarget || !newStopLoss) return;
+
+            rec.type = newType;
+            rec.buy = parseFloat(newBuy);
+            rec.target = parseFloat(newTarget);
+            rec.stopLoss = parseFloat(newStopLoss);
+            loadRecommendations();
+        }
+
+        function deleteRecommendation(id) {
+            recommendations = recommendations.filter(r => r.id !== id);
             loadRecommendations();
         }
 
@@ -159,66 +215,15 @@
             let password = document.getElementById("password").value.trim();
             
             if (users[username] && users[username].password === password) {
-                showDashboard(users[username].role);
-                if (document.getElementById("rememberMe").checked) {
-                    localStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
-                }
+                localStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
+                showDashboard(users[username].role, username);
             } else {
                 document.getElementById("errorMessage").style.display = "block";
             }
         });
 
-        function addRecommendation() {
-            const title = document.getElementById("recTitle").value;
-            const details = document.getElementById("recDetails").value;
-
-            if (title && details) {
-                recommendations.push({ title, details });
-                localStorage.setItem("recommendations", JSON.stringify(recommendations));
-                loadRecommendations();
-            }
-        }
-
-        function loadRecommendations() {
-            const recList = document.getElementById("recList");
-            recList.innerHTML = "";
-            recommendations = JSON.parse(localStorage.getItem("recommendations")) || [];
-
-            recommendations.forEach((rec, index) => {
-                const recDiv = document.createElement("div");
-                recDiv.classList.add("recommendation");
-                recDiv.innerHTML = `
-                    <h3>${rec.title}</h3>
-                    <p>${rec.details}</p>
-                    <button onclick="editRecommendation(${index})">Edit</button>
-                    <button onclick="deleteRecommendation(${index})">Delete</button>
-                    <div class="like-dislike">
-                        <button onclick="toggleReaction(${index}, 'like')">👍 Like</button>
-                        <button onclick="toggleReaction(${index}, 'dislike')">👎 Dislike</button>
-                    </div>
-                `;
-                recList.appendChild(recDiv);
-            });
-        }
-
-        function editRecommendation(index) {
-            const newTitle = prompt("Edit Title:", recommendations[index].title);
-            const newDetails = prompt("Edit Details:", recommendations[index].details);
-
-            if (newTitle && newDetails) {
-                recommendations[index] = { title: newTitle, details: newDetails };
-                localStorage.setItem("recommendations", JSON.stringify(recommendations));
-                loadRecommendations();
-            }
-        }
-
-        function deleteRecommendation(index) {
-            recommendations.splice(index, 1);
-            localStorage.setItem("recommendations", JSON.stringify(recommendations));
-            loadRecommendations();
-        }
-
-        loadLogin();
+        const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        if (savedUser) showDashboard(savedUser.role, savedUser.username);
     </script>
 
 </body>
