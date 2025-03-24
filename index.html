@@ -5,64 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRM Dashboard</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            background: #1e1e1e;
-            padding: 20px;
-            border-radius: 10px;
-        }
-        .settings {
-            text-align: right;
-        }
-        .hidden {
-            display: none;
-        }
+        body { font-family: Arial, sans-serif; background-color: #222; color: white; }
+        .container { max-width: 800px; margin: 50px auto; text-align: center; }
+        button { padding: 10px; margin: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="settings">
+    <div class="container">
+        <h1 id="welcomeText">Welcome to CRM</h1>
         <button onclick="logout()">Logout</button>
     </div>
-    <div class="container">
-        <h1 id="welcome">Welcome!</h1>
-    </div>
+    
     <script>
-        function getCookie(name) {
-            let matches = document.cookie.match(new RegExp(
-                "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/\\+^])/g, '\\$1') + "=([^;]*)"
-            ));
-            return matches ? decodeURIComponent(matches[1]) : undefined;
-        }
-        function setCookie(name, value, days) {
-            let expires = "";
-            if (days) {
-                let date = new Date();
-                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-                expires = "; expires=" + date.toUTCString();
+        document.addEventListener("DOMContentLoaded", function() {
+            const userRole = localStorage.getItem("userRole");
+            if (!userRole) {
+                window.location.href = "login.html";
+            } else {
+                document.getElementById("welcomeText").textContent = `Welcome, ${userRole}!`;
             }
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
-        }
-        function deleteCookie(name) {
-            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-        }
-        
-        let userRole = getCookie("userRole");
-        if (!userRole) {
-            window.location.href = "login.html";
-        } else {
-            document.getElementById("welcome").innerText = "Welcome, " + userRole + "!";
-        }
+        });
         
         function logout() {
-            deleteCookie("userRole");
+            localStorage.removeItem("userRole");
             window.location.href = "login.html";
         }
     </script>
