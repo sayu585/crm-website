@@ -40,30 +40,6 @@
             border-radius: 10px;
             background: white;
         }
-        .recommendation {
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin: 10px;
-            border-radius: 5px;
-            position: relative;
-        }
-        .edit-delete {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            display: none;
-        }
-        .like-dislike {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-        }
-        .liked {
-            color: green;
-        }
-        .disliked {
-            color: red;
-        }
     </style>
 </head>
 <body>
@@ -93,11 +69,6 @@
 
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-        <div id="recommendations">
-            <h2>Stock Market Recommendations</h2>
-            <button id="addRecommendation" style="display: none;" onclick="addRecommendation()">+ Add Recommendation</button>
-            <div id="recommendationList"></div>
-        </div>
     </div>
 
     <script>
@@ -106,12 +77,6 @@
             "analyst1": { password: "analyst123", role: "Analyst" },
             "client": { password: "client123", role: "Client" }
         };
-
-        let loggedInUser = null;
-        let recommendations = [
-            { id: 1, creator: "admin", type: "Intraday", buy: 100, target: 110, stopLoss: 95, status: "Open" },
-            { id: 2, creator: "analyst1", type: "Swing", buy: 200, target: 220, stopLoss: 190, status: "Open" }
-        ];
 
         function toggleSettings() {
             const menu = document.getElementById("settingsMenu");
@@ -123,91 +88,14 @@
         }
 
         function logout() {
-            localStorage.removeItem("loggedInUser");
+            sessionStorage.removeItem("loggedInUser");
             location.reload();
         }
 
         function showDashboard(role, username) {
-            loggedInUser = { role, username };
             document.getElementById("loginSection").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
             document.getElementById("welcomeMessage").textContent = `Welcome, ${username}!`;
-            
-            if (role === "Admin" || role === "Analyst") {
-                document.getElementById("addRecommendation").style.display = "block";
-            }
-
-            loadRecommendations();
-        }
-
-        function loadRecommendations() {
-            const recommendationList = document.getElementById("recommendationList");
-            recommendationList.innerHTML = "";
-
-            recommendations.forEach(rec => {
-                let recDiv = document.createElement("div");
-                recDiv.className = "recommendation";
-                recDiv.innerHTML = `
-                    <h3>${rec.type} Trade</h3>
-                    <p>Buy at: ₹${rec.buy} | Target: ₹${rec.target} | Stop Loss: ₹${rec.stopLoss} | Status: ${rec.status}</p>
-                    <div class="like-dislike">
-                        <button class="likeBtn">👍 Like</button>
-                        <button class="dislikeBtn">👎 Dislike</button>
-                    </div>
-                    <div class="edit-delete">
-                        <button onclick="editRecommendation(${rec.id})">✏ Edit</button>
-                        <button onclick="deleteRecommendation(${rec.id})">❌ Delete</button>
-                    </div>
-                `;
-
-                if (loggedInUser.role === "Admin" || (loggedInUser.role === "Analyst" && loggedInUser.username === rec.creator)) {
-                    recDiv.querySelector(".edit-delete").style.display = "block";
-                }
-
-                recommendationList.appendChild(recDiv);
-            });
-        }
-
-        function addRecommendation() {
-            let type = prompt("Enter Trade Type (Intraday, Swing, Positional, Long-Term):");
-            let buy = prompt("Enter Buy Price:");
-            let target = prompt("Enter Target Price:");
-            let stopLoss = prompt("Enter Stop Loss:");
-            if (!type || !buy || !target || !stopLoss) return;
-
-            let newRec = {
-                id: recommendations.length + 1,
-                creator: loggedInUser.username,
-                type,
-                buy: parseFloat(buy),
-                target: parseFloat(target),
-                stopLoss: parseFloat(stopLoss),
-                status: "Open"
-            };
-            recommendations.push(newRec);
-            loadRecommendations();
-        }
-
-        function editRecommendation(id) {
-            let rec = recommendations.find(r => r.id === id);
-            if (!rec || (loggedInUser.role !== "Admin" && loggedInUser.username !== rec.creator)) return;
-
-            let newType = prompt("Edit Trade Type:", rec.type);
-            let newBuy = prompt("Edit Buy Price:", rec.buy);
-            let newTarget = prompt("Edit Target Price:", rec.target);
-            let newStopLoss = prompt("Edit Stop Loss:", rec.stopLoss);
-            if (!newType || !newBuy || !newTarget || !newStopLoss) return;
-
-            rec.type = newType;
-            rec.buy = parseFloat(newBuy);
-            rec.target = parseFloat(newTarget);
-            rec.stopLoss = parseFloat(newStopLoss);
-            loadRecommendations();
-        }
-
-        function deleteRecommendation(id) {
-            recommendations = recommendations.filter(r => r.id !== id);
-            loadRecommendations();
         }
 
         document.getElementById('submitLogin').addEventListener('click', function() {
@@ -215,14 +103,14 @@
             let password = document.getElementById("password").value.trim();
             
             if (users[username] && users[username].password === password) {
-                localStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
+                sessionStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
                 showDashboard(users[username].role, username);
             } else {
                 document.getElementById("errorMessage").style.display = "block";
             }
         });
 
-        const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+        const savedUser = JSON.parse(sessionStorage.getItem("loggedInUser"));
         if (savedUser) showDashboard(savedUser.role, savedUser.username);
     </script>
 
