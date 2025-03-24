@@ -7,112 +7,64 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
+            background-color: #121212;
+            color: white;
             margin: 0;
-            padding: 0;
-            transition: background 0.3s, color 0.3s;
-        }
-        .navbar {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            background: #333;
-            color: white;
-        }
-        .settings-menu {
-            position: absolute;
-            right: 10px;
-            top: 50px;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 10px;
-            display: none;
-        }
-        .dark-mode {
-            background: #222;
-            color: white;
-        }
-        .login-container {
-            width: 300px;
-            margin: 50px auto;
             padding: 20px;
-            border: 1px solid #ccc;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #1e1e1e;
+            padding: 20px;
             border-radius: 10px;
-            background: white;
+        }
+        .settings {
+            text-align: right;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-
-    <div class="navbar">
-        <span>CRM Dashboard</span>
-        <button onclick="toggleSettings()">⚙ Settings</button>
-    </div>
-
-    <div class="settings-menu" id="settingsMenu">
-        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    <div class="settings">
         <button onclick="logout()">Logout</button>
     </div>
-
-    <div id="loginSection">
-        <div class="login-container">
-            <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <label>
-                <input type="checkbox" id="rememberMe"> Keep Me Signed In
-            </label>
-            <button id="submitLogin">Login</button>
-            <p class="error-message" id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
-        </div>
+    <div class="container">
+        <h1 id="welcome">Welcome!</h1>
     </div>
-
-    <div id="dashboard" style="display: none;">
-        <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-    </div>
-
     <script>
-        const users = {
-            "admin": { password: "admin123", role: "Admin" },
-            "analyst1": { password: "analyst123", role: "Analyst" },
-            "client": { password: "client123", role: "Client" }
-        };
-
-        function toggleSettings() {
-            const menu = document.getElementById("settingsMenu");
-            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        function getCookie(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([.$?*|{}()\[\]\\/\\+^])/g, '\\$1') + "=([^;]*)"
+            ));
+            return matches ? decodeURIComponent(matches[1]) : undefined;
         }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle("dark-mode");
-        }
-
-        function logout() {
-            sessionStorage.removeItem("loggedInUser");
-            location.reload();
-        }
-
-        function showDashboard(role, username) {
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("dashboard").style.display = "block";
-            document.getElementById("welcomeMessage").textContent = `Welcome, ${username}!`;
-        }
-
-        document.getElementById('submitLogin').addEventListener('click', function() {
-            let username = document.getElementById("username").value.trim().toLowerCase();
-            let password = document.getElementById("password").value.trim();
-            
-            if (users[username] && users[username].password === password) {
-                sessionStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
-                showDashboard(users[username].role, username);
-            } else {
-                document.getElementById("errorMessage").style.display = "block";
+        function setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                let date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
             }
-        });
-
-        const savedUser = JSON.parse(sessionStorage.getItem("loggedInUser"));
-        if (savedUser) showDashboard(savedUser.role, savedUser.username);
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+        }
+        function deleteCookie(name) {
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        }
+        
+        let userRole = getCookie("userRole");
+        if (!userRole) {
+            window.location.href = "login.html";
+        } else {
+            document.getElementById("welcome").innerText = "Welcome, " + userRole + "!";
+        }
+        
+        function logout() {
+            deleteCookie("userRole");
+            window.location.href = "login.html";
+        }
     </script>
-
 </body>
 </html>
