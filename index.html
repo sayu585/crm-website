@@ -183,39 +183,6 @@
             const recList = document.getElementById("recList");
             recList.innerHTML = "";
             recommendations = JSON.parse(localStorage.getItem("recommendations")) || [];
-
-            recommendations.forEach((rec, index) => {
-                const recDiv = document.createElement("div");
-                recDiv.classList.add("recommendation");
-                recDiv.innerHTML = `
-                    <h3>${rec.title}</h3>
-                    <p>${rec.details}</p>
-                    <button onclick="editRecommendation(${index})">Edit</button>
-                    <button onclick="deleteRecommendation(${index})">Delete</button>
-                    <div class="like-dislike">
-                        <button onclick="toggleReaction(${index}, 'like')">👍 Like</button>
-                        <button onclick="toggleReaction(${index}, 'dislike')">👎 Dislike</button>
-                    </div>
-                `;
-                recList.appendChild(recDiv);
-            });
-        }
-
-        function editRecommendation(index) {
-            const newTitle = prompt("Edit Title:", recommendations[index].title);
-            const newDetails = prompt("Edit Details:", recommendations[index].details);
-
-            if (newTitle && newDetails) {
-                recommendations[index] = { title: newTitle, details: newDetails };
-                localStorage.setItem("recommendations", JSON.stringify(recommendations));
-                loadRecommendations();
-            }
-        }
-
-        function deleteRecommendation(index) {
-            recommendations.splice(index, 1);
-            localStorage.setItem("recommendations", JSON.stringify(recommendations));
-            loadRecommendations();
         }
 
         loadLogin();
