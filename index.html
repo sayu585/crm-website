@@ -36,7 +36,7 @@
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
             padding: 10px;
-            width: 150px;
+            width: 180px;
         }
         .settings:hover .settings-menu {
             display: block;
@@ -101,9 +101,27 @@
             cursor: pointer;
             border-radius: 5px;
             transition: 0.3s;
+            margin-top: 10px;
         }
         .login-btn:hover {
             background: #0056b3;
+        }
+        .login-form {
+            display: none;
+            padding: 10px;
+            text-align: left;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 5px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .error-message {
+            color: red;
+            font-size: 12px;
+            display: none;
         }
     </style>
 </head>
@@ -121,6 +139,12 @@
                     </label>
                 </div>
                 <button id="loginButton" class="login-btn">Login</button>
+                <div id="loginForm" class="login-form">
+                    <input type="text" id="username" placeholder="Username">
+                    <input type="password" id="password" placeholder="Password">
+                    <button id="submitLogin" class="login-btn">Submit</button>
+                    <p class="error-message" id="errorMessage">Invalid credentials!</p>
+                </div>
             </div>
         </div>
     </div>
@@ -130,7 +154,15 @@
     <script>
         const themeToggle = document.getElementById('themeToggle');
         const loginButton = document.getElementById('loginButton');
+        const loginForm = document.getElementById('loginForm');
+        const submitLogin = document.getElementById('submitLogin');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('errorMessage');
         const welcomeMessage = document.getElementById('welcomeMessage');
+
+        const correctUsername = "admin";
+        const correctPassword = "1234";
 
         themeToggle.addEventListener('change', function() {
             document.body.classList.toggle('dark-mode', this.checked);
@@ -139,13 +171,25 @@
         let isLoggedIn = false;
 
         loginButton.addEventListener('click', function() {
-            isLoggedIn = !isLoggedIn;
-            if (isLoggedIn) {
-                loginButton.textContent = "Logout";
-                welcomeMessage.textContent = "Welcome Back!";
+            if (!isLoggedIn) {
+                loginForm.style.display = loginForm.style.display === "block" ? "none" : "block";
             } else {
+                isLoggedIn = false;
                 loginButton.textContent = "Login";
                 welcomeMessage.textContent = "Welcome to Your CRM";
+                loginForm.style.display = "none";
+            }
+        });
+
+        submitLogin.addEventListener('click', function() {
+            if (usernameInput.value === correctUsername && passwordInput.value === correctPassword) {
+                isLoggedIn = true;
+                loginButton.textContent = "Logout";
+                welcomeMessage.textContent = "Welcome Back!";
+                loginForm.style.display = "none";
+                errorMessage.style.display = "none";
+            } else {
+                errorMessage.style.display = "block";
             }
         });
     </script>
