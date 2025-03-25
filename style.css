@@ -1,57 +1,65 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
-    text-align: center;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    transition: background-color 0.3s, color 0.3s;
 }
+
 .navbar {
-    display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    background: #333;
+    background: #0078d4;
     color: white;
+    padding: 10px;
+    text-align: center;
 }
-.login-container, .admin-panel {
-    width: 300px;
+
+.login-container, .settings-panel, .admin-panel {
+    width: 90%;
+    max-width: 400px;
     margin: 20px auto;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 10px;
     background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
-.login-container input, .admin-panel input {
+
+/* Dark Mode Styles */
+body.dark-mode {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+body.dark-mode .navbar {
+    background-color: #333333;
+}
+
+body.dark-mode .login-container, body.dark-mode .settings-panel, body.dark-mode .admin-panel {
+    background: #333333;
+    color: #ffffff;
+}
+
+/* Button Styles */
+button {
+    display: block;
     width: 100%;
     padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-.login-btn, .admin-panel button {
-    width: 100%;
-    padding: 10px;
-    background: #007bff;
-    color: white;
+    margin-top: 10px;
     border: none;
+    border-radius: 5px;
+    background: #0078d4;
+    color: white;
     cursor: pointer;
-    border-radius: 5px;
-    margin-top: 10px;
+    transition: background-color 0.3s;
 }
-.recommendation {
-    border: 1px solid #ccc;
-    padding: 10px;
-    margin: 10px;
-    border-radius: 5px;
-    background: white;
+
+button:hover {
+    background: #005a9e;
 }
-.reaction {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
-}
-.liked {
-    color: green;
-}
-.disliked {
-    color: red;
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    .login-container, .settings-panel, .admin-panel {
+        padding: 10px;
+    }
 }
