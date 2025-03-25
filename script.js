@@ -5,66 +5,80 @@ const users = {
 };
 
 let recommendations = [];
-let tempTargets = [];
+let tempTargets = [{ id: 1, value: "" }]; // Default Target 1
 let reactions = {};
 let sessionUser = null; // In-memory session management
-let rememberUser = false; // Flag to "keep the user signed in"
+let rememberMe = false; // Tracks "Keep Me Signed In" state
 
+// Handle login button click
 document.getElementById('submitLogin').addEventListener('click', function () {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
-    const rememberMe = document.getElementById("rememberMe").checked;
+    rememberMe = document.getElementById("rememberMe").checked; // Check if "Keep Me Signed In" is selected
 
     if (users[username] && users[username].password === password) {
         sessionUser = { username, role: users[username].role }; // Store user in memory
-        rememberUser = rememberMe; // Set flag based on checkbox state
         showDashboard(sessionUser.role);
     } else {
         document.getElementById("errorMessage").style.display = "block";
     }
 });
 
-// Automatically log the user back in if "Keep Me Signed In" was selected
-function checkRememberedSession() {
-    if (rememberUser && sessionUser) {
-        showDashboard(sessionUser.role);
-    }
+// Automatically log in if "Keep Me Signed In" is active
+if (rememberMe && sessionUser) {
+    showDashboard(sessionUser.role);
 }
 
 function showDashboard(role) {
     document.getElementById("loginSection").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
     document.getElementById("welcomeMessage").textContent = `Welcome ${role}!`;
+
     if (role === "Admin" || role === "Analyst") {
         document.getElementById("adminPanel").style.display = "block";
+        initializeTargets(); // Initialize Target 1 by default
     } else {
         document.getElementById("adminPanel").style.display = "none";
     }
     loadRecommendations(role);
 }
 
+function initializeTargets() {
+    const targetsContainer = document.getElementById("targetsContainer");
+    targetsContainer.innerHTML = ""; // Clear previous targets
+    tempTargets.forEach(target => {
+        const targetField = document.createElement("input");
+        targetField.type = "number";
+        targetField.placeholder = `Target ${target.id}`;
+        targetField.className = "target-field";
+        targetField.value = target.value; // Retain value if reloaded
+        targetField.oninput = (e) => target.value = e.target.value; // Update value on input
+        targetsContainer.appendChild(targetField);
+    });
+}
+
 function addTarget() {
-    const targetField = document.createElement("input");
-    targetField.type = "number";
-    targetField.placeholder = `Target ${tempTargets.length + 1}`;
-    targetField.className = "target-field";
-    document.getElementById("targetsContainer").appendChild(targetField);
-    tempTargets.push(targetField);
+    const newTargetId = tempTargets.length + 1;
+    tempTargets.push({ id: newTargetId, value: "" });
+    initializeTargets();
 }
 
 function addRecommendation() {
     const title = document.getElementById("recTitle").value.trim();
     const buyPrice = document.getElementById("buyPrice").value.trim();
     const stopLoss = document.getElementById("stopLoss").value.trim();
-    const targets = tempTargets.map(targetField => targetField.value.trim()).filter(Boolean);
+    const targets = tempTargets.map(target => target.value.trim()).filter(Boolean);
 
-    if (title && buyPrice && stopLoss) {
-        recommendations.push({ title, buyPrice, stopLoss, targets });
-        tempTargets = [];
-        document.getElementById("targetsContainer").innerHTML = ""; // Clear targets container
-        clearInputs(); // Clear input fields
-        loadRecommendations(sessionUser.role); // Reload recommendations
+    if (!title || !buyPrice || !stopLoss || targets.length === 0) {
+        alert("Please fill in all fields, including price fields and at least one target.");
+        return;
     }
+
+    recommendations.push({ title, buyPrice, stopLoss, targets });
+    tempTargets = [{ id: 1, value: "" }]; // Reset to default Target 1
+    initializeTargets();
+    clearInputs();
+    loadRecommendations(sessionUser.role); // Reload recommendations
 }
 
 function clearInputs() {
@@ -101,6 +115,3 @@ function toggleReaction(index, reactionType) {
     reactions[index] = reactions[index] === reactionType ? null : reactionType;
     loadRecommendations("Client");
 }
-
-// Check remembered session on page load
-checkRememberedSession();
