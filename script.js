@@ -1,3 +1,47 @@
+const users = {
+    "admin": { password: "admin123", role: "Admin" },
+    "analyst": { password: "analyst123", role: "Analyst" },
+    "client": { password: "client123", role: "Client" }
+};
+
+let recommendations = [];
+
+function toggleSettings() {
+    const menu = document.getElementById("settingsMenu");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
+}
+
+function logout() {
+    location.reload();
+}
+
+function showDashboard(username, role) {
+    document.getElementById("loginSection").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    document.getElementById("welcomeMessage").textContent = `Welcome, ${username}!`;
+
+    if (role === "Admin" || role === "Analyst") {
+        document.getElementById("adminPanel").style.display = "block";
+    }
+
+    loadRecommendations(username, role);
+}
+
+document.getElementById('submitLogin').addEventListener('click', function() {
+    let username = document.getElementById("username").value.trim().toLowerCase();
+    let password = document.getElementById("password").value.trim();
+
+    if (users[username] && users[username].password === password) {
+        showDashboard(username, users[username].role);
+    } else {
+        document.getElementById("errorMessage").style.display = "block";
+    }
+});
+
 function addTarget() {
     let targetContainer = document.getElementById("targets");
     let targetCount = targetContainer.getElementsByClassName("targetPrice").length + 1;
@@ -7,7 +51,6 @@ function addTarget() {
     input.className = "targetPrice";
     input.placeholder = `Target ${targetCount}`;
     input.required = true;
-    input.setAttribute("data-index", targetCount);
     
     targetContainer.appendChild(input);
 }
@@ -28,7 +71,7 @@ function addRecommendation() {
         return;
     }
 
-    const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    const loggedInUser = document.getElementById("welcomeMessage").textContent.split(",")[1]?.trim();
     if (!loggedInUser) return;
 
     const recommendation = {
@@ -37,19 +80,18 @@ function addRecommendation() {
         buyPrice,
         stopLoss,
         targetPrices,
-        createdBy: loggedInUser.username
+        createdBy: loggedInUser
     };
 
     recommendations.push(recommendation);
-    localStorage.setItem("recommendations", JSON.stringify(recommendations));
-    loadRecommendations(loggedInUser.username, loggedInUser.role);
+    loadRecommendations(loggedInUser, users[loggedInUser]?.role);
 }
 
 function loadRecommendations(username, role) {
     const recList = document.getElementById("recList");
     recList.innerHTML = "";
 
-    recommendations.forEach((rec, index) => {
+    recommendations.forEach((rec) => {
         const recDiv = document.createElement("div");
         recDiv.classList.add("recommendation");
 
@@ -91,10 +133,23 @@ function editRecommendation(id) {
         input.placeholder = `Target ${index + 1}`;
         input.value = target.price;
         input.required = true;
-        input.setAttribute("data-index", index + 1);
         targetsContainer.appendChild(input);
     });
 
     deleteRecommendation(id);
 }
-``
+
+function deleteRecommendation(id) {
+    let recIndex = recommendations.findIndex(r => r.id === id);
+    if (recIndex === -1) return;
+
+    const loggedInUser = document.getElementById("welcomeMessage").textContent.split(",")[1]?.trim();
+    if (!loggedInUser) return;
+
+    if (users[loggedInUser].role === "Admin" || (users[loggedInUser].role === "Analyst" && recommendations[recIndex].createdBy === loggedInUser)) {
+        recommendations.splice(recIndex, 1);
+        loadRecommendations(loggedInUser, users[loggedInUser].role);
+    } else {
+        alert("You do not have permission to delete this recommendation.");
+    }
+}
