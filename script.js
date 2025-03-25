@@ -8,10 +8,21 @@ let recommendations = [];
 let tempTargets = [];
 let reactions = {};
 
+// Load login information if "Keep Me Signed In" is checked
+function loadLogin() {
+    const savedUser = JSON.parse(localStorage.getItem("loggedInUser"));
+    if (savedUser) {
+        showDashboard(savedUser.role);
+    }
+}
+
 document.getElementById('submitLogin').addEventListener('click', function () {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     if (users[username] && users[username].password === password) {
+        if (document.getElementById("rememberMe").checked) {
+            localStorage.setItem("loggedInUser", JSON.stringify({ username, role: users[username].role }));
+        }
         showDashboard(users[username].role);
     } else {
         document.getElementById("errorMessage").style.display = "block";
@@ -88,3 +99,6 @@ function toggleReaction(index, reactionType) {
     reactions[index] = reactions[index] === reactionType ? null : reactionType;
     loadRecommendations("Client");
 }
+
+// Run the `loadLogin` function on page load
+loadLogin();
