@@ -10,18 +10,25 @@ body {
     background: #0078d4;
     color: white;
     padding: 10px;
-    text-align: center;
+    display: flex;
+    justify-content: space-between; /* Spread elements across the navbar */
+    align-items: center;
 }
 
-.login-container, .settings-panel, .admin-panel {
-    width: 90%;
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
+/* Settings Button at Top-Right */
+.settings-btn {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.settings-btn:hover {
     background: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #0078d4;
 }
 
 /* Dark Mode Styles */
@@ -34,32 +41,24 @@ body.dark-mode .navbar {
     background-color: #333333;
 }
 
-body.dark-mode .login-container, body.dark-mode .settings-panel, body.dark-mode .admin-panel {
-    background: #333333;
+body.dark-mode .settings-btn {
+    border: 1px solid #ffffff;
     color: #ffffff;
 }
 
-/* Button Styles */
-button {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    border: none;
-    border-radius: 5px;
-    background: #0078d4;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background: #005a9e;
+body.dark-mode .settings-btn:hover {
+    background: #ffffff;
+    color: #333333;
 }
 
 /* Responsive Design */
 @media (max-width: 600px) {
-    .login-container, .settings-panel, .admin-panel {
-        padding: 10px;
+    .navbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .settings-btn {
+        align-self: flex-end; /* Ensure it stays to the right on smaller screens */
     }
 }
