@@ -102,7 +102,8 @@
         <div id="adminPanel" class="admin-panel" style="display: none;">
             <h3>Add Recommendation</h3>
             <input type="text" id="recTitle" placeholder="Title">
-            <input type="text" id="recDetails" placeholder="Details (Buy Price, Stop Loss)">
+            <input type="number" id="buyPrice" placeholder="Buy Price">
+            <input type="number" id="stopLoss" placeholder="Stop Loss">
             <button onclick="addTarget()">Add Target</button>
             <div id="targetsContainer"></div>
             <button onclick="addRecommendation()">Add Recommendation</button>
@@ -169,7 +170,7 @@
 
         function addTarget() {
             const targetField = document.createElement("input");
-            targetField.type = "text";
+            targetField.type = "number";
             targetField.placeholder = `Target ${tempTargets.length + 1}`;
             targetField.className = "target-field";
             document.getElementById("targetsContainer").appendChild(targetField);
@@ -178,11 +179,12 @@
 
         function addRecommendation() {
             const title = document.getElementById("recTitle").value.trim();
-            const details = document.getElementById("recDetails").value.trim();
+            const buyPrice = document.getElementById("buyPrice").value.trim();
+            const stopLoss = document.getElementById("stopLoss").value.trim();
             const targets = tempTargets.map(targetField => targetField.value.trim()).filter(Boolean);
 
-            if (title && details) {
-                recommendations.push({ title, details, targets, edited: false });
+            if (title && buyPrice && stopLoss) {
+                recommendations.push({ title, buyPrice, stopLoss, targets, edited: false });
                 localStorage.setItem("recommendations", JSON.stringify(recommendations));
                 tempTargets = [];
                 document.getElementById("targetsContainer").innerHTML = "";
@@ -199,8 +201,9 @@
                 recDiv.classList.add("recommendation");
                 recDiv.innerHTML = `
                     <h3>${rec.title}</h3>
-                    <p>${rec.details}</p>
-                    ${rec.targets.map((target, i) => `<p>Target ${i + 1}: ${target}</p>`).join("")}
+                    <p>Buy Price: ₹${rec.buyPrice}</p>
+                    <p>Stop Loss: ₹${rec.stopLoss}</p>
+                    ${rec.targets.map((target, i) => `<p>Target ${i + 1}: ₹${target}</p>`).join("")}
                     ${rec.edited ? `<span class="edited">Edited</span>` : ""}
                 `;
                 recList.appendChild(recDiv);
