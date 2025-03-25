@@ -8,17 +8,28 @@ let recommendations = [];
 let tempTargets = [];
 let reactions = {};
 let sessionUser = null; // In-memory session management
+let rememberUser = false; // Flag to "keep the user signed in"
 
 document.getElementById('submitLogin').addEventListener('click', function () {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
+    const rememberMe = document.getElementById("rememberMe").checked;
+
     if (users[username] && users[username].password === password) {
-        sessionUser = { username, role: users[username].role }; // Store user session in memory
+        sessionUser = { username, role: users[username].role }; // Store user in memory
+        rememberUser = rememberMe; // Set flag based on checkbox state
         showDashboard(sessionUser.role);
     } else {
         document.getElementById("errorMessage").style.display = "block";
     }
 });
+
+// Automatically log the user back in if "Keep Me Signed In" was selected
+function checkRememberedSession() {
+    if (rememberUser && sessionUser) {
+        showDashboard(sessionUser.role);
+    }
+}
 
 function showDashboard(role) {
     document.getElementById("loginSection").style.display = "none";
@@ -90,3 +101,6 @@ function toggleReaction(index, reactionType) {
     reactions[index] = reactions[index] === reactionType ? null : reactionType;
     loadRecommendations("Client");
 }
+
+// Check remembered session on page load
+checkRememberedSession();
