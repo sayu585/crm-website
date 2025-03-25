@@ -7,6 +7,11 @@ const users = {
 let recommendations = [];
 let currentUser = null;
 
+document.addEventListener("DOMContentLoaded", function() {
+    document.getElementById("addTargetBtn").addEventListener("click", addTargetField);
+    document.getElementById("addRecBtn").addEventListener("click", addRecommendation);
+});
+
 function toggleSettings() {
     const menu = document.getElementById("settingsMenu");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
@@ -52,24 +57,23 @@ function addTargetField() {
     input.type = "number";
     input.placeholder = `Target ${targetCount}`;
     input.className = "target-field";
+    input.required = true;
     targetContainer.appendChild(input);
 }
 
-document.getElementById("addTargetBtn").addEventListener("click", addTargetField);
-
-document.getElementById("addRecBtn").addEventListener("click", function() {
-    const title = document.getElementById("recTitle").value;
-    const buyPrice = document.getElementById("buyPrice").value;
-    const stopLoss = document.getElementById("stopLoss").value;
+function addRecommendation() {
+    const title = document.getElementById("recTitle").value.trim();
+    const buyPrice = document.getElementById("buyPrice").value.trim();
+    const stopLoss = document.getElementById("stopLoss").value.trim();
     const targetFields = document.querySelectorAll(".target-field");
     
-    if (!title || !buyPrice || !stopLoss) {
-        alert("All fields are required!");
+    if (!title || !buyPrice || !stopLoss || targetFields.length === 0) {
+        alert("All fields are required, including at least one target!");
         return;
     }
     
     let targets = [];
-    targetFields.forEach(field => targets.push(field.value));
+    targetFields.forEach(field => targets.push(field.value.trim()));
     
     let recommendation = {
         id: Date.now(),
@@ -82,7 +86,7 @@ document.getElementById("addRecBtn").addEventListener("click", function() {
     
     recommendations.push(recommendation);
     loadRecommendations();
-});
+}
 
 function loadRecommendations() {
     const recList = document.getElementById("recList");
@@ -140,9 +144,4 @@ function editRecommendation(id) {
 function deleteRecommendation(id) {
     recommendations = recommendations.filter(rec => rec.id !== id);
     loadRecommendations();
-}
-
-// Load dashboard if user is already logged in
-if (currentUser) {
-    showDashboard(currentUser.role);
 }
