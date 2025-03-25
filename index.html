@@ -10,26 +10,13 @@
             text-align: center;
             margin: 0;
             padding: 0;
-            transition: background 0.3s, color 0.3s;
+            background-color: #f4f4f4;
         }
         .navbar {
             display: flex;
             justify-content: space-between;
             padding: 10px;
             background: #333;
-            color: white;
-        }
-        .settings-menu {
-            position: absolute;
-            right: 10px;
-            top: 50px;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 10px;
-            display: none;
-        }
-        .dark-mode {
-            background: #222;
             color: white;
         }
         .login-container, .admin-panel {
@@ -62,11 +49,15 @@
             padding: 10px;
             margin: 10px;
             border-radius: 5px;
+            background: white;
         }
-        .edited {
-            font-size: 0.8em;
-            color: gray;
+        .reaction {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
         }
+        .liked { color: green; }
+        .disliked { color: red; }
     </style>
 </head>
 <body>
@@ -84,7 +75,7 @@
     </div>
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-        <div id="adminPanel" class="admin-panel">
+        <div id="adminPanel" class="admin-panel" style="display: none;">
             <h3>Add Recommendation</h3>
             <input type="text" id="recTitle" placeholder="Title">
             <input type="number" id="buyPrice" placeholder="Buy Price">
@@ -107,15 +98,18 @@
 
         let recommendations = [];
         let tempTargets = [];
+        let reactions = {};
 
         function showDashboard(role) {
             document.getElementById("loginSection").style.display = "none";
             document.getElementById("dashboard").style.display = "block";
             document.getElementById("welcomeMessage").textContent = `Welcome ${role}!`;
-            if (role === "Admin") {
+            if (role === "Admin" || role === "Analyst") {
                 document.getElementById("adminPanel").style.display = "block";
+            } else {
+                document.getElementById("adminPanel").style.display = "none";
             }
-            loadRecommendations();
+            loadRecommendations(role);
         }
 
         document.getElementById('submitLogin').addEventListener('click', function () {
@@ -144,11 +138,11 @@
             const targets = tempTargets.map(targetField => targetField.value.trim()).filter(Boolean);
 
             if (title && buyPrice && stopLoss) {
-                recommendations.push({ title, buyPrice, stopLoss, targets, edited: false });
+                recommendations.push({ title, buyPrice, stopLoss, targets });
                 tempTargets = [];
                 document.getElementById("targetsContainer").innerHTML = ""; // Clear targets container
                 clearInputs(); // Clear input fields
-                loadRecommendations();
+                loadRecommendations("Admin"); // Reload recommendations
             }
         }
 
@@ -158,7 +152,7 @@
             document.getElementById("stopLoss").value = "";
         }
 
-        function loadRecommendations() {
+        function loadRecommendations(role) {
             const recList = document.getElementById("recList");
             recList.innerHTML = "";
             recommendations.forEach((rec, index) => {
@@ -170,8 +164,21 @@
                     <p>Stop Loss: ₹${rec.stopLoss}</p>
                     ${rec.targets.map((target, i) => `<p>Target ${i + 1}: ₹${target}</p>`).join("")}
                 `;
+                if (role === "Client") {
+                    recDiv.innerHTML += `
+                        <div class="reaction">
+                            <button onclick="toggleReaction(${index}, 'like')" class="${reactions[index] === 'like' ? 'liked' : ''}">Like</button>
+                            <button onclick="toggleReaction(${index}, 'dislike')" class="${reactions[index] === 'dislike' ? 'disliked' : ''}">Dislike</button>
+                        </div>
+                    `;
+                }
                 recList.appendChild(recDiv);
             });
+        }
+
+        function toggleReaction(index, reactionType) {
+            reactions[index] = reactions[index] === reactionType ? null : reactionType;
+            loadRecommendations("Client");
         }
     </script>
 </body>
