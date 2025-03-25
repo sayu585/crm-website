@@ -9,41 +9,32 @@
 <body>
     <div class="navbar">
         <span>CRM Dashboard</span>
-        <!-- Settings Button Moved to Top Right -->
-        <button id="settingsButton" class="settings-btn">Settings</button>
+        <button onclick="toggleSettings()">⚙ Settings</button>
+    </div>
+    <div class="settings-menu" id="settingsMenu">
+        <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <button onclick="logout()">Logout</button>
     </div>
     <div id="loginSection">
         <div class="login-container">
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
-            <label>
-                <input type="checkbox" id="rememberMe"> Keep Me Signed In
-            </label>
+            <label><input type="checkbox" id="rememberMe"> Keep Me Signed In</label>
             <button id="submitLogin" class="login-btn">Login</button>
-            <p id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
+            <p class="error-message" id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
         </div>
     </div>
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
-        <div id="settingsPanel" class="settings-panel" style="display: none;">
-            <h3>Settings</h3>
-            <label>
-                <input type="checkbox" id="darkModeToggle"> Enable Dark Mode
-            </label>
-            <button id="logoutButton" class="logout-btn">Logout</button>
-        </div>
         <div id="adminPanel" class="admin-panel" style="display: none;">
             <h3>Add Recommendation</h3>
             <input type="text" id="recTitle" placeholder="Title">
-            <input type="number" id="buyPrice" placeholder="Buy Price">
-            <input type="number" id="stopLoss" placeholder="Stop Loss">
-            <button onclick="addTarget()">Add Target</button>
-            <div id="targetsContainer"></div>
-            <button onclick="addRecommendation()">Add Recommendation</button>
+            <input type="text" id="recDetails" placeholder="Details (Buy Price, Target, Stop Loss)">
+            <button onclick="addRecommendation()">Add</button>
         </div>
         <div id="recommendations">
-            <h2>Recommendations</h2>
+            <h2>Stock Market Recommendations</h2>
             <div id="recList"></div>
         </div>
     </div>
