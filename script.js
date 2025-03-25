@@ -7,13 +7,13 @@ const users = {
 let recommendations = [];
 let tempTargets = [];
 let reactions = {};
-let sessionUser = null; // Store the logged-in user in memory
+let sessionUser = null; // In-memory session management
 
 document.getElementById('submitLogin').addEventListener('click', function () {
     const username = document.getElementById("username").value.trim();
     const password = document.getElementById("password").value.trim();
     if (users[username] && users[username].password === password) {
-        sessionUser = { username, role: users[username].role }; // Store user in memory
+        sessionUser = { username, role: users[username].role }; // Store user session in memory
         showDashboard(sessionUser.role);
     } else {
         document.getElementById("errorMessage").style.display = "block";
