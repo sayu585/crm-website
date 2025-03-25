@@ -15,7 +15,6 @@
             <h2>Login</h2>
             <input type="text" id="username" placeholder="Username">
             <input type="password" id="password" placeholder="Password">
-            <!-- Added Keep Me Signed In Checkbox -->
             <label>
                 <input type="checkbox" id="rememberMe"> Keep Me Signed In
             </label>
@@ -25,6 +24,14 @@
     </div>
     <div id="dashboard" style="display: none;">
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
+        <button id="settingsButton" class="settings-btn">Settings</button>
+        <div id="settingsPanel" class="settings-panel" style="display: none;">
+            <h3>Settings</h3>
+            <label>
+                <input type="checkbox" id="darkModeToggle"> Enable Dark Mode
+            </label>
+            <button id="logoutButton" class="logout-btn">Logout</button>
+        </div>
         <div id="adminPanel" class="admin-panel" style="display: none;">
             <h3>Add Recommendation</h3>
             <input type="text" id="recTitle" placeholder="Title">
