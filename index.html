@@ -18,8 +18,8 @@
     <div id="loginSection">
         <div class="login-container">
             <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
             <label><input type="checkbox" id="rememberMe"> Keep Me Signed In</label>
             <button id="submitLogin" class="login-btn">Login</button>
             <p class="error-message" id="errorMessage" style="color: red; display: none;">Invalid credentials!</p>
@@ -29,9 +29,14 @@
         <h1 id="welcomeMessage">Welcome to Your CRM</h1>
         <div id="adminPanel" class="admin-panel" style="display: none;">
             <h3>Add Recommendation</h3>
-            <input type="text" id="recTitle" placeholder="Title">
-            <input type="text" id="recDetails" placeholder="Details (Buy Price, Target, Stop Loss)">
-            <button onclick="addRecommendation()">Add</button>
+            <input type="text" id="recTitle" placeholder="Title" required>
+            <input type="number" id="buyPrice" placeholder="Buy Price" required>
+            <input type="number" id="stopLoss" placeholder="Stop Loss" required>
+            <div id="targets">
+                <input type="number" class="targetPrice" placeholder="Target Price" required>
+            </div>
+            <button onclick="addTarget()">Add Target</button>
+            <button onclick="addRecommendation()">Add Recommendation</button>
         </div>
         <div id="recommendations">
             <h2>Stock Market Recommendations</h2>
