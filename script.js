@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const addTargetBtn = document.getElementById("addTargetBtn");
     const addRecBtn = document.getElementById("addRecBtn");
     const recList = document.getElementById("recList");
+    const role = document.body.getAttribute("data-role");
     let recommendations = [];
 
     if (addTargetBtn) {
@@ -42,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 buyPrice,
                 stopLoss,
                 targets,
+                addedBy: role
             };
 
             recommendations.push(recommendation);
@@ -59,9 +61,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 <p>Buy Price: ${rec.buyPrice}</p>
                 <p>Stop Loss: ${rec.stopLoss}</p>
                 <p>Targets: ${rec.targets.join(", ")}</p>
-                <button onclick="editRecommendation(${index})">Edit</button>
-                <button onclick="deleteRecommendation(${index})">Delete</button>
             `;
+            
+            if (role === "Admin" || (role === "Analyst" && rec.addedBy === "Analyst")) {
+                const editBtn = document.createElement("button");
+                editBtn.innerText = "Edit";
+                editBtn.onclick = () => editRecommendation(index);
+                recDiv.appendChild(editBtn);
+                
+                const deleteBtn = document.createElement("button");
+                deleteBtn.innerText = "Delete";
+                deleteBtn.onclick = () => deleteRecommendation(index);
+                recDiv.appendChild(deleteBtn);
+            }
+            
             recList.appendChild(recDiv);
         });
     }
